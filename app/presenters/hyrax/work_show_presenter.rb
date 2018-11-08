@@ -1,5 +1,8 @@
+require 'action_view'
+
 module Hyrax
   class WorkShowPresenter
+    include ActionView::Helpers::SanitizeHelper
     include ModelProxy
     include PresentsAttributes
 
@@ -218,7 +221,7 @@ module Hyrax
       Hyrax.config.iiif_metadata_fields.each do |field|
         metadata << {
           'label' => I18n.t("simple_form.labels.defaults.#{field}"),
-          'value' => Array.wrap(send(field))
+          'value' => Array.wrap(send(field).map { |f| strip_tags(f) })
         }
       end
       metadata

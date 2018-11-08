@@ -1,8 +1,11 @@
 require 'iiif_manifest'
+require 'action_view'
+require 'jsonpath'
 
 module Hyrax
   module WorksControllerBehavior
     extend ActiveSupport::Concern
+    include ActionView::Helpers::SanitizeHelper
     include Blacklight::Base
     include Blacklight::AccessControls::Catalog
 
@@ -127,9 +130,11 @@ module Hyrax
 
     def manifest
       headers['Access-Control-Allow-Origin'] = '*'
+      json = JsonPath.for(manifest_builder.to_h.to_json).gsub('$..description[*]') { |d| strip_tags(d) }.gsub('$..label') { |l| strip_tags(l) }
+
       respond_to do |wants|
-        wants.json { render json: manifest_builder.to_h }
-        wants.html { render json: manifest_builder.to_h }
+        wants.json { render json: json }
+        wants.html { render json: json }
       end
     end
 
